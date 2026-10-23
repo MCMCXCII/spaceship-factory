@@ -1,0 +1,2 @@
+// Code generated for spaceship-factory service
+// © MCMCXCII 2026.

@@ -1,11 +1,11 @@
-name: "Test API"
+name: "Test Unit"
 
 on:
   workflow_call:
 
 jobs:
-  test-api:
-    name: "API tests"
+  test-unit:
+    name: "Unit tests with coverage"
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
@@ -26,5 +26,16 @@ jobs:
       - name: Install Task
         run: go install github.com/go-task/task/v3/cmd/task@v3.50.0
 
-      - name: Run API tests
-        run: task test:api
+      - name: Run unit tests with coverage
+        run: task test:coverage
+
+      - name: Publish coverage to job summary
+        if: always()
+        run: |
+          {
+            echo "## 📊 Coverage report"
+            echo ""
+            echo '```'
+            go tool cover -func=coverage/coverage.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
