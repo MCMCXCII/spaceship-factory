@@ -3,9 +3,10 @@ package v1
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
 	"github.com/MCMCXCII/spaceship-factory/inventory/internal/service/input"
-	"github.com/google/uuid"
 )
 
 type InventoryService interface {

@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 
-	"github.com/MCMCXCII/spaceship-factory/order/pkg/handler"
+	"github.com/MCMCXCII/spaceship-factory/order/pkg/app"
 	inventoryv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/proto/inventory/v1"
 	paymentv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/proto/payment/v1"
 )
@@ -55,20 +55,18 @@ func run() error {
 	}
 	defer closeConn(paymentConn, "PaymentService")
 
-	h := handler.NewHandler(
+	// Сборка слоёв OrderService
+	handler, err := app.NewHTTPHandler(
 		inventoryv1.NewInventoryServiceClient(inventoryConn),
 		paymentv1.NewPaymentServiceClient(paymentConn),
-		handler.NewOrderStore(),
 	)
-
-	orderServer, err := handler.SetupServer(h)
 	if err != nil {
-		return fmt.Errorf("ошибка создания сервера OpenAPI: %w", err)
+		return fmt.Errorf("ошибка создания HTTP-обработчика: %w", err)
 	}
 
 	server := &http.Server{
 		Addr:              httpAddress,
-		Handler:           orderServer,
+		Handler:           handler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		ReadTimeout:       readTimeout,
 		WriteTimeout:      writeTimeout,

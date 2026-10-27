@@ -9,14 +9,11 @@ import (
 	"syscall"
 	"time"
 
-	inventoryAPI "github.com/MCMCXCII/spaceship-factory/inventory/internal/api/inventory/v1"
-	"github.com/MCMCXCII/spaceship-factory/inventory/internal/interceptor"
-	inventoryRepository "github.com/MCMCXCII/spaceship-factory/inventory/internal/repository/inventory"
-	inventoryService "github.com/MCMCXCII/spaceship-factory/inventory/internal/service/inventory"
-	inventoryv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/MCMCXCII/spaceship-factory/inventory/pkg/app"
 )
 
 const grpcAddress = ":50051"
@@ -31,15 +28,15 @@ const (
 )
 
 func main() {
-	//nolint:noctx
+	//nolint:noctx // listener создаётся до появления контекста сигналов
 	lis, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
 		slog.Error("не удалось создать listener", "error", err)
 		os.Exit(1)
 	}
 
-	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.ErrorInterceptor),
+	opts := append(
+		app.Interceptors(),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     grpcMaxConnectionIdle,
 			MaxConnectionAge:      grpcMaxConnectionAge,
@@ -53,11 +50,10 @@ func main() {
 		}),
 	)
 
-	repo := inventoryRepository.New()
-	service := inventoryService.New(repo)
-	api := inventoryAPI.NewAPI(service)
+	grpcServer := grpc.NewServer(opts...)
 
-	inventoryv1.RegisterInventoryServiceServer(grpcServer, api)
+	// Сборка слоёв и регистрация InventoryService
+	app.RegisterServices(grpcServer)
 
 	// Включаем reflection для postman/grpcurl
 	reflection.Register(grpcServer)

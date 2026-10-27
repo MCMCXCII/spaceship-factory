@@ -3,8 +3,9 @@ package inventory
 import (
 	"context"
 
-	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
 	"github.com/google/uuid"
+
+	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
 )
 
 type InventoryRepository interface {

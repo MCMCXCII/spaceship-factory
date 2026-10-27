@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
 	"github.com/google/uuid"
+
+	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
 )
 
 func (s *service) Get(ctx context.Context, partUUID uuid.UUID) (model.Part, error) {

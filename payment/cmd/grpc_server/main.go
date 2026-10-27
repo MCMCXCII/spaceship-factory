@@ -13,10 +13,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
-	paymentAPI "github.com/MCMCXCII/spaceship-factory/payment/internal/api/payment/v1"
-	"github.com/MCMCXCII/spaceship-factory/payment/internal/interceptor"
-	paymentService "github.com/MCMCXCII/spaceship-factory/payment/internal/service/payment"
-	paymentv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/proto/payment/v1"
+	"github.com/MCMCXCII/spaceship-factory/payment/pkg/app"
 )
 
 const grpcAddress = ":50052"
@@ -38,8 +35,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.ErrorInterceptor),
+	opts := app.Interceptors()
+	opts = append(
+		opts,
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     grpcMaxConnectionIdle,
 			MaxConnectionAge:      grpcMaxConnectionAge,
@@ -53,10 +51,10 @@ func main() {
 		}),
 	)
 
-	service := paymentService.New()
-	api := paymentAPI.NewAPI(service)
+	grpcServer := grpc.NewServer(opts...)
 
-	paymentv1.RegisterPaymentServiceServer(grpcServer, api)
+	// Сборка слоёв и регистрация PaymentService
+	app.RegisterServices(grpcServer)
 
 	// Включаем reflection для postman/grpcurl
 	reflection.Register(grpcServer)

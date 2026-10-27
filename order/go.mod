@@ -8,6 +8,7 @@ require (
 	github.com/MCMCXCII/spaceship-factory/payment v0.0.0-00010101000000-000000000000
 	github.com/MCMCXCII/spaceship-factory/shared v0.0.0-00010101000000-000000000000
 	github.com/google/uuid v1.6.0
+	github.com/ogen-go/ogen v1.20.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.79.2
 )
@@ -25,7 +26,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/ogen-go/ogen v1.20.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect

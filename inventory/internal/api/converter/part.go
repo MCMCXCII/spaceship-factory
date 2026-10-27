@@ -1,12 +1,13 @@
 package converter
 
 import (
+	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	errs "github.com/MCMCXCII/spaceship-factory/inventory/internal/errors"
 	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
 	"github.com/MCMCXCII/spaceship-factory/inventory/internal/service/input"
 	inventoryv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/proto/inventory/v1"
-	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ListPartsRequestToInput переводит запрос ListParts в фильтр сервиса

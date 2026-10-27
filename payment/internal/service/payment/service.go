@@ -19,7 +19,8 @@ func New() *service {
 func (s *service) Pay(ctx context.Context, orderUUID uuid.UUID, method model.PaymentMethod) (uuid.UUID, error) {
 	txUUID := uuid.New()
 
-	slog.InfoContext(ctx, "оплата выполнена",
+	slog.InfoContext(
+		ctx, "оплата выполнена",
 		"order_uuid", orderUUID,
 		"transaction_uuid", txUUID,
 		"payment_method", method,

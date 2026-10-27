@@ -4,8 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/MCMCXCII/spaceship-factory/inventory/internal/repository/record"
 	"github.com/google/uuid"
+
+	"github.com/MCMCXCII/spaceship-factory/inventory/internal/repository/record"
 )
 
 type Repository struct {

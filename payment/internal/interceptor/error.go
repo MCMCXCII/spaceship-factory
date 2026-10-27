@@ -29,7 +29,8 @@ func ErrorInterceptor(
 		errors.Is(err, errs.ErrInvalidPaymentMethod):
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	default:
-		slog.ErrorContext(ctx, "необработанная ошибка gRPC-метода",
+		slog.ErrorContext(
+			ctx, "необработанная ошибка gRPC-метода",
 			"method", info.FullMethod,
 			"error", err,
 		)
