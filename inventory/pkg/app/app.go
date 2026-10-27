@@ -6,7 +6,7 @@ import (
 	inventoryAPI "github.com/MCMCXCII/spaceship-factory/inventory/internal/api/inventory/v1"
 	"github.com/MCMCXCII/spaceship-factory/inventory/internal/interceptor"
 	inventoryRepository "github.com/MCMCXCII/spaceship-factory/inventory/internal/repository/inventory"
-	inventoryService "github.com/MCMCXCII/spaceship-factory/inventory/internal/service/inventory"
+	inventoryService "github.com/MCMCXCII/spaceship-factory/inventory/internal/service/part"
 	inventoryv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/proto/inventory/v1"
 )
 
