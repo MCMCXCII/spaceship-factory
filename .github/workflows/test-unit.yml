@@ -39,3 +39,22 @@ jobs:
             go tool cover -func=coverage/coverage.out
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Extract total coverage
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          COVERAGE=$(go tool cover -func=coverage/coverage.out | grep total | awk '{print $3}' | tr -d '%')
+          echo "COVERAGE=$COVERAGE" >> "$GITHUB_ENV"
+
+      - name: Update coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: e81736479e2a971951273f002df641f4
+          filename: spaceship-factory-coverage.json
+          label: coverage
+          message: ${{ env.COVERAGE }}%
+          valColorRange: ${{ env.COVERAGE }}
+          minColorRange: 40
+          maxColorRange: 90
