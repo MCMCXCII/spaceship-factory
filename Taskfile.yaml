@@ -209,7 +209,7 @@ tasks:
         sh: |
           for mod in order inventory payment; do
             (cd "$mod" && go list ./... | grep -v "/mocks" | grep -E '/(api|service)/')
-          done | tr '\n' ','
+          done | paste -sd, -
     preconditions:
       - sh: test -n "{{.TARGET_PACKAGES}}"
         msg: "Не найдено пакетов для тестирования"
@@ -218,7 +218,7 @@ tasks:
       - |
         for mod in order inventory payment; do
           echo "=== $mod ==="
-          (cd "$mod" && MOD=$(go list -m) && go test -v -race -covermode=atomic -coverprofile={{.COVERAGE_DIR}}/${mod}.out -coverpkg={{.TARGET_PACKAGES}} $(go list ./... | grep -vE "^${MOD}/tests(/|$)"))
+          (cd "$mod" && go test -v -race -covermode=atomic -coverprofile={{.COVERAGE_DIR}}/${mod}.out -coverpkg={{.TARGET_PACKAGES}} $(go list ./... | grep -v '/tests'))
         done
       - echo "📊 Объединяем отчёты покрытия..."
       - |

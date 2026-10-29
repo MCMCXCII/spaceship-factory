@@ -5,12 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	errs "github.com/MCMCXCII/spaceship-factory/inventory/internal/errors"
-	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
-	"github.com/MCMCXCII/spaceship-factory/inventory/internal/service/part/mocks"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	errs "github.com/MCMCXCII/spaceship-factory/inventory/internal/errors"
+	"github.com/MCMCXCII/spaceship-factory/inventory/internal/model"
+	"github.com/MCMCXCII/spaceship-factory/inventory/internal/service/part/mocks"
 )
 
 func TestGet(t *testing.T) {

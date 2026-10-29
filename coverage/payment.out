@@ -1,0 +1,20 @@
+mode: atomic
+github.com/MCMCXCII/spaceship-factory/payment/internal/service/payment/service.go:14.21,16.2 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/service/payment/service.go:19.112,30.2 3 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:12.101,14.16 2 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:14.16,16.3 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:18.2,19.46 2 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:19.46,21.3 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:23.2,23.31 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:27.74,28.11 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:29.51,30.33 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:31.50,32.32 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:33.58,34.39 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:35.61,36.42 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/converter/payment.go:37.10,38.40 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/payment/v1/api.go:14.49,16.2 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/payment/v1/pay.go:11.114,13.16 2 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/payment/v1/pay.go:13.16,15.3 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/payment/v1/pay.go:17.2,18.16 2 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/payment/v1/pay.go:18.16,20.3 1 0
+github.com/MCMCXCII/spaceship-factory/payment/internal/api/payment/v1/pay.go:22.2,22.75 1 0
