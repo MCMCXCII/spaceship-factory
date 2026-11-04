@@ -23,27 +23,32 @@ func TestCreate(t *testing.T) {
 		ctx         = context.Background()
 		hullUUID    = uuid.New()
 		engineUUID  = uuid.New()
-		missingUUID = uuid.New()
 		shieldUUID  = uuid.New()
+		missingUUID = uuid.New()
 
 		errRepo = errors.New("ошибка хранилища")
 
-		partsInStock = []model.Part{
-			{UUID: hullUUID, Name: "Hull", Price: 500000, StockQuantity: 10},
-			{UUID: engineUUID, Name: "Engine", Price: 300000, StockQuantity: 5},
-		}
+		hull   = model.Part{UUID: hullUUID, Name: "Корпус", PartType: model.PartTypeHull, Price: 500000, StockQuantity: 10}
+		engine = model.Part{UUID: engineUUID, Name: "Двигатель", PartType: model.PartTypeEngine, Price: 300000, StockQuantity: 5}
+		shield = model.Part{UUID: shieldUUID, Name: "Щит", PartType: model.PartTypeShield, Price: 400000, StockQuantity: 3}
 
-		partsOutOfStock = []model.Part{
-			{UUID: hullUUID, Name: "Hull", Price: 500000, StockQuantity: 10},
-			{UUID: engineUUID, Name: "Engine", Price: 300000, StockQuantity: 0},
-		}
-
-		partsInStockWithOptional = []model.Part{
-			{UUID: hullUUID, Name: "Hull", Price: 500000, StockQuantity: 10},
-			{UUID: engineUUID, Name: "Engine", Price: 300000, StockQuantity: 3},
-			{UUID: shieldUUID, Name: "Shield", Price: 400000, StockQuantity: 5},
-		}
+		engineOutOfStock = model.Part{UUID: engineUUID, Name: "Двигатель", PartType: model.PartTypeEngine, Price: 300000, StockQuantity: 0}
 	)
+
+	// itemsMatch проверяет, что строки заказа совпадают с деталями по UUID, типу и цене, в том же порядке
+	itemsMatch := func(items []model.OrderItem, parts ...model.Part) bool {
+		if len(items) != len(parts) {
+			return false
+		}
+		for i, part := range parts {
+			if items[i].PartUUID != part.UUID ||
+				items[i].PartType != part.PartType ||
+				items[i].Price != part.Price {
+				return false
+			}
+		}
+		return true
+	}
 
 	type args struct {
 		in input.CreateOrderInput
@@ -62,31 +67,52 @@ func TestCreate(t *testing.T) {
 	}{
 		{
 			name: "успешное создание заказа",
-			args: args{
-				in: input.CreateOrderInput{
-					HullUUID:   hullUUID,
-					EngineUUID: engineUUID,
-				},
-			},
+			args: args{in: input.CreateOrderInput{
+				HullUUID:   hullUUID,
+				EngineUUID: engineUUID,
+			}},
 			setupMock: func(repo *mocks.OrderRepository, client *mocks.InventoryClient) {
 				client.EXPECT().
 					ListParts(ctx, []uuid.UUID{hullUUID, engineUUID}).
-					Return(partsInStock, nil)
+					Return([]model.Part{hull, engine}, nil)
 
-				repo.EXPECT().Create(ctx, mock.MatchedBy(func(o model.Order) bool {
-					return o.UUID != uuid.Nil &&
-						o.HullUUID == hullUUID &&
-						o.EngineUUID == engineUUID &&
-						!o.ShieldUUID.Valid &&
-						!o.WeaponUUID.Valid &&
-						o.TotalPrice == 800000 && // 500000 + 300000
-						o.Status == model.OrderStatusPendingPayment &&
-						!o.CreatedAt.IsZero()
-				})).Return(nil)
+				repo.EXPECT().
+					Create(ctx, mock.MatchedBy(func(o model.Order) bool {
+						return o.UUID != uuid.Nil &&
+							itemsMatch(o.Items, hull, engine) &&
+							o.TotalPrice() == 800000 && // 500000 + 300000
+							o.Status == model.OrderStatusPendingPayment &&
+							o.TransactionUUID == nil &&
+							o.PaymentMethod == nil &&
+							!o.CreatedAt.IsZero()
+					})).
+					Return(nil)
 			},
-			expected: expected{
-				totalPrice: 800000,
+			expected: expected{totalPrice: 800000},
+		},
+		{
+			name: "успешное создание заказа с опциональным щитом",
+			args: args{in: input.CreateOrderInput{
+				HullUUID:   hullUUID,
+				EngineUUID: engineUUID,
+				ShieldUUID: &shieldUUID,
+			}},
+			setupMock: func(repo *mocks.OrderRepository, client *mocks.InventoryClient) {
+				client.EXPECT().
+					ListParts(ctx, []uuid.UUID{hullUUID, engineUUID, shieldUUID}).
+					Return([]model.Part{hull, engine, shield}, nil)
+
+				repo.EXPECT().
+					Create(ctx, mock.MatchedBy(func(o model.Order) bool {
+						return o.UUID != uuid.Nil &&
+							itemsMatch(o.Items, hull, engine, shield) &&
+							o.TotalPrice() == 1200000 && // 500000 + 300000 + 400000
+							o.Status == model.OrderStatusPendingPayment &&
+							!o.CreatedAt.IsZero()
+					})).
+					Return(nil)
 			},
+			expected: expected{totalPrice: 1200000},
 		},
 		{
 			name: "деталь не найдена",
@@ -94,12 +120,12 @@ func TestCreate(t *testing.T) {
 				HullUUID:   hullUUID,
 				EngineUUID: missingUUID,
 			}},
-			setupMock: func(repo *mocks.OrderRepository, client *mocks.InventoryClient) {
-				client.EXPECT().ListParts(ctx, []uuid.UUID{hullUUID, missingUUID}).Return([]model.Part{}, errs.ErrPartNotFound)
+			setupMock: func(_ *mocks.OrderRepository, client *mocks.InventoryClient) {
+				client.EXPECT().
+					ListParts(ctx, []uuid.UUID{hullUUID, missingUUID}).
+					Return(nil, errs.ErrPartNotFound)
 			},
-			expected: expected{
-				err: errs.ErrPartNotFound,
-			},
+			expected: expected{err: errs.ErrPartNotFound},
 		},
 		{
 			name: "деталь закончилась на складе",
@@ -107,38 +133,12 @@ func TestCreate(t *testing.T) {
 				HullUUID:   hullUUID,
 				EngineUUID: engineUUID,
 			}},
-			setupMock: func(repo *mocks.OrderRepository, client *mocks.InventoryClient) {
-				client.EXPECT().ListParts(ctx, []uuid.UUID{hullUUID, engineUUID}).Return(partsOutOfStock, nil)
+			setupMock: func(_ *mocks.OrderRepository, client *mocks.InventoryClient) {
+				client.EXPECT().
+					ListParts(ctx, []uuid.UUID{hullUUID, engineUUID}).
+					Return([]model.Part{hull, engineOutOfStock}, nil)
 			},
-			expected: expected{
-				err: errs.ErrOutOfStock,
-			},
-		},
-		{
-			name: "успешное создание заказа с опциональными полями",
-			args: args{in: input.CreateOrderInput{
-				HullUUID:   hullUUID,
-				EngineUUID: engineUUID,
-				ShieldUUID: uuid.NullUUID{UUID: shieldUUID, Valid: true},
-			}},
-			setupMock: func(repo *mocks.OrderRepository, client *mocks.InventoryClient) {
-				client.EXPECT().ListParts(ctx, []uuid.UUID{hullUUID, engineUUID, shieldUUID}).Return(partsInStockWithOptional, nil)
-				repo.EXPECT().Create(ctx, mock.MatchedBy(func(o model.Order) bool {
-					return o.UUID != uuid.Nil &&
-						o.HullUUID == hullUUID &&
-						o.EngineUUID == engineUUID &&
-						o.ShieldUUID.Valid &&
-						o.ShieldUUID.UUID == shieldUUID &&
-						!o.WeaponUUID.Valid &&
-						o.TotalPrice == 1200000 && // 500000 + 300000 + 400000
-						o.Status == model.OrderStatusPendingPayment &&
-						!o.CreatedAt.IsZero()
-				})).Return(nil)
-			},
-			expected: expected{
-				totalPrice: 1200000,
-				err:        nil,
-			},
+			expected: expected{err: errs.ErrOutOfStock},
 		},
 		{
 			name: "ошибка сохранения заказа",
@@ -149,15 +149,13 @@ func TestCreate(t *testing.T) {
 			setupMock: func(repo *mocks.OrderRepository, client *mocks.InventoryClient) {
 				client.EXPECT().
 					ListParts(ctx, []uuid.UUID{hullUUID, engineUUID}).
-					Return(partsInStock, nil)
+					Return([]model.Part{hull, engine}, nil)
 
 				repo.EXPECT().
 					Create(ctx, mock.Anything).
 					Return(errRepo)
 			},
-			expected: expected{
-				err: errRepo,
-			},
+			expected: expected{err: errRepo},
 		},
 	}
 
@@ -165,12 +163,13 @@ func TestCreate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			inventoryClient := mocks.NewInventoryClient(t)
 			orderRepo := mocks.NewOrderRepository(t)
+			inventoryClient := mocks.NewInventoryClient(t)
+			paymentClient := mocks.NewPaymentClient(t)
 
 			tc.setupMock(orderRepo, inventoryClient)
 
-			svc := New(orderRepo, inventoryClient, nil)
+			svc := New(orderRepo, inventoryClient, paymentClient)
 
 			got, err := svc.Create(ctx, tc.args.in)
 
@@ -181,7 +180,8 @@ func TestCreate(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tc.expected.totalPrice, got.TotalPrice)
+			assert.NotEqual(t, uuid.Nil, got.UUID)
+			assert.Equal(t, tc.expected.totalPrice, got.TotalPrice())
 			assert.Equal(t, model.OrderStatusPendingPayment, got.Status)
 		})
 	}

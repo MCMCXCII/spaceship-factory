@@ -26,12 +26,13 @@ func TestCancel(t *testing.T) {
 		errRepo     = errors.New("ошибка хранилища")
 
 		pendingOrder = model.Order{
-			UUID:       orderUUID,
-			HullUUID:   uuid.New(),
-			EngineUUID: uuid.New(),
-			TotalPrice: 800000,
-			Status:     model.OrderStatusPendingPayment,
-			CreatedAt:  time.Date(2026, 10, 29, 12, 0, 0, 0, time.UTC),
+			UUID: orderUUID,
+			Items: []model.OrderItem{
+				{PartUUID: uuid.New(), PartType: model.PartTypeHull, Price: 500000},
+				{PartUUID: uuid.New(), PartType: model.PartTypeEngine, Price: 300000},
+			},
+			Status:    model.OrderStatusPendingPayment,
+			CreatedAt: time.Date(2026, 10, 29, 12, 0, 0, 0, time.UTC),
 		}
 	)
 
@@ -65,9 +66,9 @@ func TestCancel(t *testing.T) {
 					Update(ctx, mock.MatchedBy(func(o model.Order) bool {
 						return o.UUID == orderUUID &&
 							o.Status == model.OrderStatusCancelled &&
-							!o.TransactionUUID.Valid &&
-							o.PaymentMethod == model.PaymentMethodUnspecified &&
-							o.TotalPrice == pendingOrder.TotalPrice
+							o.TransactionUUID == nil &&
+							o.PaymentMethod == nil &&
+							o.TotalPrice() == pendingOrder.TotalPrice()
 					})).
 					Return(nil)
 			},

@@ -25,7 +25,7 @@ func ErrorInterceptor(
 	}
 
 	switch {
-	case errors.Is(err, errs.ErrInvalidUUID),
+	case errors.Is(err, errs.ErrInvalidOrderUUID),
 		errors.Is(err, errs.ErrInvalidPaymentMethod):
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	default:

@@ -6,11 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/MCMCXCII/spaceship-factory/order/internal/client/grpc/payment/v1/converter"
-	errs "github.com/MCMCXCII/spaceship-factory/order/internal/errors"
 	"github.com/MCMCXCII/spaceship-factory/order/internal/model"
 	paymentv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/proto/payment/v1"
 )
@@ -38,9 +35,6 @@ func (c *Client) PayOrder(ctx context.Context, orderUUID uuid.UUID, method model
 		PaymentMethod: converter.PaymentMethodToDTO(method),
 	})
 	if err != nil {
-		if st, ok := status.FromError(err); ok && st.Code() == codes.InvalidArgument {
-			return uuid.Nil, errs.ErrInvalidPaymentMethod
-		}
 		return uuid.Nil, fmt.Errorf("оплатить заказ: %w", err)
 	}
 

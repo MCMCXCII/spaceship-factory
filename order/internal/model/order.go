@@ -8,43 +8,40 @@ import (
 
 type Order struct {
 	UUID            uuid.UUID
-	HullUUID        uuid.UUID
-	EngineUUID      uuid.UUID
-	ShieldUUID      uuid.NullUUID
-	WeaponUUID      uuid.NullUUID
-	TotalPrice      int64
-	TransactionUUID uuid.NullUUID
-	PaymentMethod   PaymentMethod
+	Items           []OrderItem
+	TransactionUUID *uuid.UUID
+	PaymentMethod   *PaymentMethod
 	Status          OrderStatus
 	CreatedAt       time.Time
 }
 
-// PaymentMethod - способ оплаты товара
-type PaymentMethod int
+func (o Order) TotalPrice() int64 {
+	var total int64
+	for _, item := range o.Items {
+		total += item.Price
+	}
+	return total
+}
+
+type OrderItem struct {
+	PartUUID uuid.UUID
+	PartType PartType
+	Price    int64
+}
+
+type OrderStatus string
 
 const (
-	// PaymentMethodUnspecified — способ оплаты не указан
-	PaymentMethodUnspecified PaymentMethod = iota
-	// PaymentMethodCard — банковская карта
-	PaymentMethodCard
-	// PaymentMethodSBP — система быстрых платежей
-	PaymentMethodSBP
-	// PaymentMethodCreditCard — кредитная карта
-	PaymentMethodCreditCard
-	// PaymentMethodInvestorMoney — деньги инвестора
-	PaymentMethodInvestorMoney
+	OrderStatusPendingPayment OrderStatus = "PENDING_PAYMENT"
+	OrderStatusPaid           OrderStatus = "PAID"
+	OrderStatusCancelled      OrderStatus = "CANCELLED"
 )
 
-// OrderStatus — статус заказа
-type OrderStatus int
+type PaymentMethod string
 
 const (
-	// OrderStatusUnspecified — заказ не создан
-	OrderStatusUnspecified OrderStatus = iota
-	// OrderStatusPendingPayment — заказ ожидает оплаты
-	OrderStatusPendingPayment
-	// OrderStatusPaid — заказ оплачен
-	OrderStatusPaid
-	// OrderStatusCancelled — заказ отменён
-	OrderStatusCancelled
+	PaymentMethodCard          PaymentMethod = "CARD"
+	PaymentMethodSBP           PaymentMethod = "SBP"
+	PaymentMethodCreditCard    PaymentMethod = "CREDIT_CARD"
+	PaymentMethodInvestorMoney PaymentMethod = "INVESTOR_MONEY"
 )

@@ -30,12 +30,13 @@ func TestPay(t *testing.T) {
 		errPayment = errors.New("payment недоступен")
 
 		pendingOrder = model.Order{
-			UUID:       orderUUID,
-			HullUUID:   uuid.New(),
-			EngineUUID: uuid.New(),
-			TotalPrice: 800000,
-			Status:     model.OrderStatusPendingPayment,
-			CreatedAt:  time.Date(2026, 10, 29, 12, 0, 0, 0, time.UTC),
+			UUID: orderUUID,
+			Items: []model.OrderItem{
+				{PartUUID: uuid.New(), PartType: model.PartTypeHull, Price: 500000},
+				{PartUUID: uuid.New(), PartType: model.PartTypeEngine, Price: 300000},
+			},
+			Status:    model.OrderStatusPendingPayment,
+			CreatedAt: time.Date(2026, 10, 29, 12, 0, 0, 0, time.UTC),
 		}
 	)
 
@@ -72,10 +73,11 @@ func TestPay(t *testing.T) {
 					Update(ctx, mock.MatchedBy(func(o model.Order) bool {
 						return o.UUID == orderUUID &&
 							o.Status == model.OrderStatusPaid &&
-							o.TransactionUUID.Valid &&
-							o.TransactionUUID.UUID == txUUID &&
-							o.PaymentMethod == method &&
-							o.TotalPrice == pendingOrder.TotalPrice
+							o.TransactionUUID != nil &&
+							*o.TransactionUUID == txUUID &&
+							o.PaymentMethod != nil &&
+							*o.PaymentMethod == method &&
+							o.TotalPrice() == pendingOrder.TotalPrice()
 					})).
 					Return(nil)
 			},

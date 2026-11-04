@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -33,6 +35,8 @@ const (
 
 	grpcKeepaliveTime    = 5 * time.Minute
 	grpcKeepaliveTimeout = 1 * time.Second
+
+	OrderDSN = "postgres://order-service-user:order-service-password@localhost:5432/order-service?sslmode=disable"
 )
 
 func main() {
@@ -43,6 +47,8 @@ func main() {
 }
 
 func run() error {
+	ctx := context.Background()
+
 	inventoryConn, err := newGRPCConn(inventoryServiceAddress)
 	if err != nil {
 		return fmt.Errorf("не удалось подключиться к InventoryService: %w", err)
@@ -55,8 +61,28 @@ func run() error {
 	}
 	defer closeConn(paymentConn, "PaymentService")
 
-	// Сборка слоёв OrderService
+	pool, err := pgxpool.New(ctx, OrderDSN)
+	if err != nil {
+		slog.Error("создание пула соединений", "error", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	err = pool.Ping(ctx)
+	if err != nil {
+		slog.Error("проверка соединения с БД", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("Соединение к БД установлено")
+
+	txManager, err := manager.New(trmpgx.NewDefaultFactory(pool))
+	if err != nil {
+		slog.Error("создание фабрики транзакций", "error", err)
+		os.Exit(1)
+	}
 	handler, err := app.NewHTTPHandler(
+		p
 		inventoryv1.NewInventoryServiceClient(inventoryConn),
 		paymentv1.NewPaymentServiceClient(paymentConn),
 	)
@@ -73,7 +99,7 @@ func run() error {
 		IdleTimeout:       idleTimeout,
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	errCh := make(chan error, 1)
@@ -92,7 +118,7 @@ func run() error {
 		return nil
 	}
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
@@ -103,7 +129,6 @@ func run() error {
 	return nil
 }
 
-// newGRPCConn создаёт gRPC-соединение с keepalive-параметрами
 func newGRPCConn(address string) (*grpc.ClientConn, error) {
 	return grpc.NewClient(
 		address,
@@ -116,7 +141,6 @@ func newGRPCConn(address string) (*grpc.ClientConn, error) {
 	)
 }
 
-// closeConn закрывает gRPC-соединение и логирует ошибку закрытия
 func closeConn(conn *grpc.ClientConn, name string) {
 	if err := conn.Close(); err != nil {
 		slog.Error("ошибка закрытия gRPC-соединения", "service", name, "error", err)

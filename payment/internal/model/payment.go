@@ -1,33 +1,21 @@
 package model
 
-// PaymentMethod — способ оплаты заказа
-type PaymentMethod int
+type PaymentMethod string
 
 const (
-	// PaymentMethodUnspecified — способ оплаты не указан
-	PaymentMethodUnspecified PaymentMethod = iota
-	// PaymentMethodCard — банковская карта
-	PaymentMethodCard
-	// PaymentMethodSBP — система быстрых платежей
-	PaymentMethodSBP
-	// PaymentMethodCreditCard — кредитная карта
-	PaymentMethodCreditCard
-	// PaymentMethodInvestorMoney — деньги инвестора
-	PaymentMethodInvestorMoney
+	PaymentMethodUnspecified   PaymentMethod = "UNSPECIFIED"
+	PaymentMethodCard          PaymentMethod = "CARD"
+	PaymentMethodSBP           PaymentMethod = "SBP"
+	PaymentMethodCreditCard    PaymentMethod = "CREDIT_CARD"
+	PaymentMethodInvestorMoney PaymentMethod = "INVESTOR_MONEY"
 )
 
-// String возвращает имя способа оплаты для логов
-func (m PaymentMethod) String() string {
+func (m PaymentMethod) IsValid() bool {
 	switch m {
-	case PaymentMethodCard:
-		return "CARD"
-	case PaymentMethodSBP:
-		return "SBP"
-	case PaymentMethodCreditCard:
-		return "CREDIT_CARD"
-	case PaymentMethodInvestorMoney:
-		return "INVESTOR_MONEY"
+	case PaymentMethodCard, PaymentMethodSBP,
+		PaymentMethodCreditCard, PaymentMethodInvestorMoney:
+		return true
 	default:
-		return "UNSPECIFIED"
+		return false
 	}
 }

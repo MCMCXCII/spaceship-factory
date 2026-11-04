@@ -38,8 +38,6 @@ func (c *Client) ListParts(ctx context.Context, uuids []uuid.UUID) ([]model.Part
 			switch st.Code() {
 			case codes.NotFound:
 				return nil, errs.ErrPartNotFound
-			case codes.InvalidArgument:
-				return nil, errs.ErrInvalidUUID
 			}
 		}
 		return nil, fmt.Errorf("получить список деталей: %w", err)

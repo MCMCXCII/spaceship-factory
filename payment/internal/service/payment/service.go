@@ -6,7 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/MCMCXCII/spaceship-factory/payment/internal/model"
+	errs "github.com/MCMCXCII/spaceship-factory/payment/internal/errors"
+	"github.com/MCMCXCII/spaceship-factory/payment/internal/service/input"
 )
 
 type service struct{}
@@ -16,14 +17,18 @@ func New() *service {
 }
 
 // Pay проводит оплату заказа и возвращает UUID новой транзакции.
-func (s *service) Pay(ctx context.Context, orderUUID uuid.UUID, method model.PaymentMethod) (uuid.UUID, error) {
+func (s *service) Pay(ctx context.Context, in input.PayOrderInput) (uuid.UUID, error) {
+	if !in.PaymentMethod.IsValid() {
+		return uuid.Nil, errs.ErrInvalidPaymentMethod
+	}
+
 	txUUID := uuid.New()
 
 	slog.InfoContext(
 		ctx, "оплата выполнена",
-		"order_uuid", orderUUID,
+		"order_uuid", in.OrderUUID,
 		"transaction_uuid", txUUID,
-		"payment_method", method,
+		"payment_method", in.PaymentMethod,
 	)
 
 	return txUUID, nil

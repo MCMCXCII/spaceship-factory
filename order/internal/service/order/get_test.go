@@ -25,12 +25,13 @@ func TestGet(t *testing.T) {
 		errRepo     = errors.New("ошибка хранилища")
 
 		order = model.Order{
-			UUID:       orderUUID,
-			HullUUID:   uuid.New(),
-			EngineUUID: uuid.New(),
-			TotalPrice: 800000,
-			Status:     model.OrderStatusPendingPayment,
-			CreatedAt:  time.Date(2026, 10, 29, 12, 0, 0, 0, time.UTC),
+			UUID: orderUUID,
+			Items: []model.OrderItem{
+				{PartUUID: uuid.New(), PartType: model.PartTypeHull, Price: 500000},
+				{PartUUID: uuid.New(), PartType: model.PartTypeEngine, Price: 300000},
+			},
+			Status:    model.OrderStatusPendingPayment,
+			CreatedAt: time.Date(2026, 10, 29, 12, 0, 0, 0, time.UTC),
 		}
 	)
 

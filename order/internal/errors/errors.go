@@ -12,7 +12,6 @@ var (
 	ErrPartNotFound = errors.New("деталь не найдена")
 	ErrOutOfStock   = errors.New("деталь отсутствует на складе")
 
-	// Ошибки валидации
 	ErrInvalidUUID          = errors.New("неверный формат UUID")
-	ErrInvalidPaymentMethod = errors.New("неверный метод оплаты")
+	ErrInvalidPaymentMethod = errors.New("неверный способ оплаты")
 )
