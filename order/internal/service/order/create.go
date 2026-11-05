@@ -20,7 +20,7 @@ func (s *service) Create(ctx context.Context, in input.CreateOrderInput) (model.
 
 	items := make([]model.OrderItem, 0, len(parts))
 	for _, part := range parts {
-		if part.StockQuantity < 0 {
+		if part.StockQuantity <= 0 {
 			return model.Order{}, fmt.Errorf("деталь %s: %w", part.Name, errs.ErrOutOfStock)
 		}
 

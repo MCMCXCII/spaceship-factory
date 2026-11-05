@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/MCMCXCII/spaceship-factory/order/internal/model"
 	"github.com/MCMCXCII/spaceship-factory/order/internal/repository/converter"
-	sq "github.com/Masterminds/squirrel"
 )
 
 func (r *repository) Create(ctx context.Context, order model.Order) error {
@@ -27,7 +28,8 @@ func (r *repository) createOrder(ctx context.Context, order model.Order) error {
 		VALUES ($1, $2, $3)
 	`
 
-	_, err := r.getter.DefaultTrOrDB(ctx, r.pool).Exec(ctx, query,
+	_, err := r.getter.DefaultTrOrDB(ctx, r.pool).Exec(
+		ctx, query,
 		rec.UUID,
 		rec.Status,
 		rec.CreatedAt,

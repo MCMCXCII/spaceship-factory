@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 
 	inventoryAPI "github.com/MCMCXCII/spaceship-factory/inventory/internal/api/inventory/v1"
@@ -17,8 +18,8 @@ func Interceptors() []grpc.ServerOption {
 }
 
 // RegisterServices собирает слои InventoryService и регистрирует его в gRPC-сервере
-func RegisterServices(s grpc.ServiceRegistrar) {
-	repo := inventoryRepository.New()
+func RegisterServices(s grpc.ServiceRegistrar, pool *pgxpool.Pool) {
+	repo := inventoryRepository.New(pool)
 	service := inventoryService.New(repo)
 	api := inventoryAPI.NewAPI(service)
 

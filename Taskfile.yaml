@@ -193,7 +193,7 @@ tasks:
       - |
         for mod in order inventory payment; do
           echo "=== $mod ==="
-          (cd "$mod" && MOD=$(go list -m) && go test -v -race -count=1 $(go list ./... | grep -vE "^${MOD}/tests(/|$)"))
+          (cd "$mod" && go test -v -race -count=1 $(go list ./... | grep -v '/tests'))
         done
 
   coverage:clean:

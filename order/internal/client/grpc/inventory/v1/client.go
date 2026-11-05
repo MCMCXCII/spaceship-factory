@@ -33,12 +33,8 @@ func (c *Client) ListParts(ctx context.Context, uuids []uuid.UUID) ([]model.Part
 		Uuids: converter.UUIDsToDTO(uuids),
 	})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
-			switch st.Code() {
-			case codes.NotFound:
-				return nil, errs.ErrPartNotFound
-			}
+		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
+			return nil, errs.ErrPartNotFound
 		}
 		return nil, fmt.Errorf("получить список деталей: %w", err)
 	}

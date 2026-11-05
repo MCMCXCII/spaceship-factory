@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Part - деталь космического корабля
+// Part — деталь космического корабля на складе
 type Part struct {
 	UUID          uuid.UUID
 	Name          string
@@ -17,18 +17,18 @@ type Part struct {
 	CreatedAt     time.Time
 }
 
-// PartType - тип детали
-type PartType int
+// PartType — тип детали
+type PartType string
 
 const (
-	// Не указан
-	PartTypeUnspecified PartType = iota
-	// Корпус корабля
-	PartTypeHull
-	// Двигатель
-	PartTypeEngine
-	// Защитный щит
-	PartTypeShield
-	// Вооружение
-	PartTypeWeapon
+	// тип не указан; в фильтре означает «все детали»
+	PartTypeUnspecified PartType = ""
+	// корпус корабля
+	PartTypeHull PartType = "HULL"
+	// двигатель
+	PartTypeEngine PartType = "ENGINE"
+	// защитный щит
+	PartTypeShield PartType = "SHIELD"
+	// вооружение
+	PartTypeWeapon PartType = "WEAPON"
 )

@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
@@ -27,8 +28,13 @@ const (
 	grpcMinPingInterval       = 5 * time.Minute
 )
 
+//nolint:gosec // учебный DSN
+const inventoryDSN string = "postgres://inventory-service-user:inventory-service-password@localhost:5433/inventory-service?sslmode=disable"
+
 func main() {
-	//nolint:noctx // listener создаётся до появления контекста сигналов
+	ctx := context.Background()
+
+	//nolint:noctx // учебный
 	lis, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
 		slog.Error("не удалось создать listener", "error", err)
@@ -52,14 +58,26 @@ func main() {
 
 	grpcServer := grpc.NewServer(opts...)
 
+	pool, err := pgxpool.New(ctx, inventoryDSN)
+	if err != nil {
+		slog.Error("подключить пул", "error", err)
+		os.Exit(1)
+	}
+
+	err = pool.Ping(ctx)
+	if err != nil {
+		slog.Error("проверка соединения с БД", "error", err)
+		os.Exit(1)
+	}
+
 	// Сборка слоёв и регистрация InventoryService
-	app.RegisterServices(grpcServer)
+	app.RegisterServices(grpcServer, pool)
 
 	// Включаем reflection для postman/grpcurl
 	reflection.Register(grpcServer)
 
 	// Контекст, который отменяется по SIGINT/SIGTERM или при падении сервера
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
 	go func() {

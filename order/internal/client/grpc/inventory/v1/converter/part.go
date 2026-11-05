@@ -41,7 +41,23 @@ func PartToModel(p *inventoryv1.Part) (model.Part, error) {
 	return model.Part{
 		UUID:          partUUID,
 		Name:          p.GetName(),
+		PartType:      partTypeToModel(p.GetPartType()),
 		Price:         p.GetPrice(),
 		StockQuantity: p.GetStockQuantity(),
 	}, nil
+}
+
+func partTypeToModel(t inventoryv1.PartType) model.PartType {
+	switch t {
+	case inventoryv1.PartType_PART_TYPE_HULL:
+		return model.PartTypeHull
+	case inventoryv1.PartType_PART_TYPE_ENGINE:
+		return model.PartTypeEngine
+	case inventoryv1.PartType_PART_TYPE_SHIELD:
+		return model.PartTypeShield
+	case inventoryv1.PartType_PART_TYPE_WEAPON:
+		return model.PartTypeWeapon
+	default:
+		return ""
+	}
 }

@@ -1,10 +1,9 @@
 package converter
 
 import (
-	"fmt"
-
 	"github.com/google/uuid"
 
+	errs "github.com/MCMCXCII/spaceship-factory/order/internal/errors"
 	"github.com/MCMCXCII/spaceship-factory/order/internal/model"
 	"github.com/MCMCXCII/spaceship-factory/order/internal/service/input"
 	orderv1 "github.com/MCMCXCII/spaceship-factory/shared/pkg/openapi/order/v1"
@@ -34,7 +33,7 @@ func PaymentMethodToModel(m orderv1.PaymentMethod) (model.PaymentMethod, error) 
 	case orderv1.PaymentMethodINVESTORMONEY:
 		return model.PaymentMethodInvestorMoney, nil
 	default:
-		return "", fmt.Errorf("ErrInvalidPaymentMethod")
+		return "", errs.ErrInvalidPaymentMethod
 	}
 }
 
@@ -88,7 +87,6 @@ func optionalItemToDTO(items []model.OrderItem, partType model.PartType) orderv1
 }
 
 // optNilUUIDToModel переводит опциональный UUID из запроса в указатель.
-// Отсутствующее поле и null дают nil.
 func optNilUUIDToModel(v orderv1.OptNilUUID) *uuid.UUID {
 	id, ok := v.Get()
 	if !ok {

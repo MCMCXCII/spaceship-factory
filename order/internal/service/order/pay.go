@@ -26,8 +26,8 @@ func (s *service) Pay(ctx context.Context, orderUUID uuid.UUID, method model.Pay
 	}
 
 	order.Status = model.OrderStatusPaid
-	order.TransactionUUID = uuid.NullUUID{UUID: txUUID, Valid: true}
-	order.PaymentMethod = method
+	order.TransactionUUID = &txUUID
+	order.PaymentMethod = &method
 
 	if err := s.orderRepository.Update(ctx, order); err != nil {
 		return uuid.Nil, fmt.Errorf("обновить заказ: %w", err)

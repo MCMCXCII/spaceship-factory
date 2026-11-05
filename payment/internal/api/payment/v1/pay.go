@@ -9,12 +9,12 @@ import (
 
 // PayOrder проводит оплату заказа и возвращает UUID транзакции
 func (a *api) PayOrder(ctx context.Context, req *paymentv1.PayOrderRequest) (*paymentv1.PayOrderResponse, error) {
-	orderUUID, method, err := converter.PayOrderRequestToInput(req)
+	in, err := converter.PayOrderRequestToInput(req)
 	if err != nil {
 		return nil, err
 	}
 
-	txUUID, err := a.paymentService.Pay(ctx, orderUUID, method)
+	txUUID, err := a.paymentService.Pay(ctx, in)
 	if err != nil {
 		return nil, err
 	}

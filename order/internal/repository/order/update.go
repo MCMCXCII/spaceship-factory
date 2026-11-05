@@ -19,7 +19,8 @@ func (r *repository) Update(ctx context.Context, order model.Order) error {
 			SET status = $1, transaction_uuid = $2, payment_method = $3, updated_at = $4
 			WHERE uuid = $5`
 
-		tag, err := r.getter.DefaultTrOrDB(txCtx, r.pool).Exec(txCtx, query,
+		tag, err := r.getter.DefaultTrOrDB(txCtx, r.pool).Exec(
+			txCtx, query,
 			rec.Status,
 			rec.TransactionUUID,
 			rec.PaymentMethod,

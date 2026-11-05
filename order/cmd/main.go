@@ -11,8 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -36,6 +37,9 @@ const (
 	grpcKeepaliveTime    = 5 * time.Minute
 	grpcKeepaliveTimeout = 1 * time.Second
 
+	pingTimeout = 5 * time.Second
+
+	//nolint:gosec // учебный пример - скоро уберу
 	OrderDSN = "postgres://order-service-user:order-service-password@localhost:5432/order-service?sslmode=disable"
 )
 
@@ -63,26 +67,28 @@ func run() error {
 
 	pool, err := pgxpool.New(ctx, OrderDSN)
 	if err != nil {
-		slog.Error("создание пула соединений", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("создать пул соединений: %w", err)
 	}
 	defer pool.Close()
 
-	err = pool.Ping(ctx)
+	pingCtx, cancel := context.WithTimeout(ctx, pingTimeout)
+	defer cancel()
+
+	err = pool.Ping(pingCtx)
 	if err != nil {
-		slog.Error("проверка соединения с БД", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("проверить соединение с БД: %w", err)
 	}
 
 	slog.Info("Соединение к БД установлено")
 
 	txManager, err := manager.New(trmpgx.NewDefaultFactory(pool))
 	if err != nil {
-		slog.Error("создание фабрики транзакций", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("создать transaction manager: %w", err)
 	}
+
 	handler, err := app.NewHTTPHandler(
-		p
+		pool,
+		txManager,
 		inventoryv1.NewInventoryServiceClient(inventoryConn),
 		paymentv1.NewPaymentServiceClient(paymentConn),
 	)
